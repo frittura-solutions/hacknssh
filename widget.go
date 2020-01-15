@@ -46,55 +46,65 @@ type MainWidget struct {
 }
 
 func NewWidget(w int, h int, col string) *Widget {
-    base := make([][]string, w+2)
-    for x := range base {
-        base[x] = make([]string, h+2)
+    display := make([][]string, w+2)
+    for x := range display {
+        display[x] = make([]string, h+2)
     }
 
     // Load the walls into the rune slice
     borderColorizer := color.New(colors[col]).SprintFunc()
     for x := 0; x < w+2; x++ {
-        base[x][0] = borderColorizer(string(horizontalWall))
-        base[x][h+1] = borderColorizer(string(horizontalWall))
+        display[x][0] = borderColorizer(string(horizontalWall))
+        display[x][h+1] = borderColorizer(string(horizontalWall))
     }
     for y := 0; y < h+2; y++ {
-        base[0][y] = borderColorizer(string(verticalWall))
-        base[w+1][y] = borderColorizer(string(verticalWall))
+        display[0][y] = borderColorizer(string(verticalWall))
+        display[w+1][y] = borderColorizer(string(verticalWall))
     }
 
     // Load the walls into the rune slice
     for x := 0; x < w+2; x++ {
-        base[x][0] = borderColorizer(string(horizontalWall))
-        base[x][h+1] = borderColorizer(string(horizontalWall))
+        display[x][0] = borderColorizer(string(horizontalWall))
+        display[x][h+1] = borderColorizer(string(horizontalWall))
     }
     for y := 0; y < h+2; y++ {
-        base[0][y] = borderColorizer(string(verticalWall))
-        base[w+1][y] = borderColorizer(string(verticalWall))
+        display[0][y] = borderColorizer(string(verticalWall))
+        display[w+1][y] = borderColorizer(string(verticalWall))
     }
 
     // Time for the edges!
-    base[0][0] = borderColorizer(string(topLeft))
-    base[w+1][0] = borderColorizer(string(topRight))
-    base[w+1][h+1] = borderColorizer(string(bottomRight))
-    base[0][h+1] = borderColorizer(string(bottomLeft))
+    display[0][0] = borderColorizer(string(topLeft))
+    display[w+1][0] = borderColorizer(string(topRight))
+    display[w+1][h+1] = borderColorizer(string(bottomRight))
+    display[0][h+1] = borderColorizer(string(bottomLeft))
 
     return &Widget{
         Width:  w,
         Height: h,
-        Display:   base,
+        Display: display,
     }
 }
 
 func (w *Widget) writeAtLine(str string, h int, align string, pad int, col string) {
     colorStrColorizer := color.New(colors[col]).SprintFunc()
-    if align=="right" {
+    if align == "right" {
         for i, r := range str {
             charsRemaining := len(str) - i
-            w.Display[w.Width-pad-charsRemaining][h] = colorStrColorizer(string(r))
+            if w.Width-pad-charsRemaining >= 0 {
+                w.Display[w.Width-pad-charsRemaining][h] = colorStrColorizer(string(r))
+            } else {
+                break
+            }
+            
         }
     } else {
         for i, r := range str {
-            w.Display[pad+i][h] = colorStrColorizer(string(r))
+            if pad + i < w.Width {
+                w.Display[pad+i][h] = colorStrColorizer(string(r))
+            } else {
+                break
+            }
+            
         } 
     }
     

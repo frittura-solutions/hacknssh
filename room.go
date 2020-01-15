@@ -1,9 +1,7 @@
 package main
 
 import (
-    "bytes"
     "fmt"
-    "io"
     "time"
 
     "github.com/dustinkirkland/golang-petname"
@@ -37,13 +35,15 @@ func getLinks(document *goquery.Document) []string {
 
 type Room struct {
     Name        string
+    Width       int
+    Height      int
     Redraw      chan struct{}
     HighScore   int
     maxPlayers  int
     Page        string
     Links       []string
     MainWidget  *Widget
-    SideWidget  *Widget
+    SideWidget  *Widget//move to Session
 
 
     // Top left is 0,0
@@ -98,7 +98,7 @@ func (r *Room) initalize(width, height int) {
         }
     }
     //r.setTileType(Position{float64(r.WorldWidth()/2), float64(r.WorldHeight()/2)}, TileBlocker)
-    r.MainWidget = NewWidget(width, height, "white")
+    
 }
 
 func (r *Room) setTileType(pos Position, tileType TileType) error {
@@ -124,135 +124,7 @@ func (r *Room) players() map[*Player]*Session {
     return players
 }
 
-// Warning: this will only work with square worlds
-func (r *Room) worldString(s *Session) string {
-    //panel := NewWidget(16, r.MainWidget.Height, "white")
-    
 
-    // Draw the player's score
-    scoreStr := fmt.Sprintf(
-        " %s Score: %d : Your High Score: %d : Room High Score: %d ",
-        s.Player.Name,
-        s.Player.Score(),
-        s.HighScore,
-        r.HighScore,
-    )
-    r.MainWidget.writeAtLine(scoreStr, 0, "left", 3, "white")
-    // Draw the room's name
-    nameStr := fmt.Sprintf(" %s ", r.Name)
-    r.MainWidget.writeAtLine(nameStr, 0, "right", 3, "white")
-
-
-    // Draw everyone's scores
-    // if len(r.players()) > 1 {
-    //     // Sort the players by color name
-    //     players := []*Player{}
-
-    //     for player := range r.players() {
-    //         if player == s.Player {
-    //             continue
-    //         }
-
-    //         players = append(players, player)
-    //     }
-
-    //     sort.Sort(ByColor(players))
-    //     startX := 3
-
-    //     // Actually draw their scores
-    //     for _, player := range players {
-    //         colorizer := color.New(player.Color).SprintFunc()
-    //         scoreStr := fmt.Sprintf(" %s: %d",
-    //             player.Name,
-    //             player.Score(),
-    //         )
-    //         for _, r := range scoreStr {
-    //             strWorld[startX][len(strWorld[0])-1] = colorizer(string(r))
-    //             startX++
-    //         }
-    //     }
-
-    //     // Add final spacing next to wall
-    //     strWorld[startX][len(strWorld[0])-1] = " "
-    // } else {
-    //     warning :=
-    //         " All alone in this lonely room "
-    //     for i, r := range warning {
-    //         strWorld[3+i][len(strWorld[0])-1] = borderColorizer(string(r))
-    //     }
-    // }
-
-    
-
-    // Load the level into the string slice
-    for x := 0; x < r.MainWidget.Width; x++ {
-        for y := 0; y < r.MainWidget.Height; y++ {
-            tile := r.level[x][y]
-
-            switch tile.Type {
-            case TileGrass:
-                r.MainWidget.Display[x+1][y+1] = string(grass)
-            case TileBlocker:
-                r.MainWidget.Display[x+1][y+1] = string(blocker)
-            }
-        }
-    }
-
-    // Create side panel
-    // for x := 0; x < panelWidth; x++ {
-    //     for y := 0; y < panelHeight; y++ {
-    //         strPanel[x+1][y+1] = string(grass)
-    //     }
-    // }
-
-    // Draw the player's color
-
-    //playerSpeedStr := fmt.Sprintf("S: %3.2f ", s.Player.Speed)
-    
-
-    // for i, r := range playerSpeedStr {
-    //     charsRemaining := len(playerSpeedStr) - i
-    //     strPanel[len(strPanel)-3-charsRemaining][2] = colorStrColorizer(string(r))
-    // }
-
-    // Load the players into the rune slice
-    // for player := range r.players() {
-
-    //     pos := player.Pos
-    //     //colorizer := color.New(player.Color).SprintFunc()
-    //     r.MainWidget.Display[pos.RoundX()+1][pos.RoundY()+1] = colorizer(string(player.Marker))
-
-    //     // Load the player's trail into the rune slice
-    //     for _, segment := range player.Trail {
-    //         x, y := segment.Pos.RoundX()+1, segment.Pos.RoundY()+1
-    //         colorizer := color.New(segment.Color).SprintFunc()
-    //         r.MainWidget.Display[x][y] = colorizer(string(segment.Marker))
-    //     }
-    // }
-    for player := range r.players() {
-        r.MainWidget.writeField(player)
-    }
-
-    // Convert the rune slice to a string
-    totalWidth := r.MainWidget.Width//+panelWidth
-    totalHeight := r.MainWidget.Height//+panelHeight
-    buffer := bytes.NewBuffer(make([]byte, 0, totalWidth*totalHeight*2))
-    for y := 0; y < r.MainWidget.Height+2; y++ {
-        
-        // for x := 0; x < len(strPanel); x++ {
-        //     buffer.WriteString(strPanel[x][y])
-        // }
-        for x := 0; x < r.MainWidget.Width+2; x++ {
-            buffer.WriteString(r.MainWidget.Display[x][y])
-        }
-        // Don't add an extra newline if we're on the last iteration
-        if y != r.MainWidget.Height+2-1 {
-            buffer.WriteString("\r\n")
-        }
-    }
-
-    return buffer.String()
-}
 
 func (r *Room) WorldWidth() int {
     return len(r.level)
@@ -374,16 +246,16 @@ func (r *Room) Update(delta float64) {
     }
 }
 
-func (r *Room) Render(s *Session) {
-    worldStr := r.worldString(s)
+// func (r *Room) Render(s *Session) {
+//     worldStr := r.worldString(s)
 
-    var b bytes.Buffer
-    b.WriteString("\033[H\033[2J")
-    b.WriteString(worldStr)
+//     var b bytes.Buffer
+//     b.WriteString("\033[H\033[2J")
+//     b.WriteString(worldStr)
 
-    // Send over the rendered world
-    io.Copy(s, &b)
-}
+//     // Send over the rendered world
+//     io.Copy(s, &b)
+// }
 
 func (r *Room) AddSession(s *Session) {
     r.hub.Register <- s

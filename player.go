@@ -61,8 +61,10 @@ type PlayerTrailSegment struct {
 }
 
 type Player struct {
-    s *Session
+    s         *Session//this should become []*Sessions
+    Room      *Room
 
+    Id        []byte
     Name      string
     CreatedAt time.Time
     Direction PlayerDirection
@@ -226,3 +228,4 @@ func (p *Player) Update(g *Room, delta float64) {
 
     p.score = p.calculateScore(delta, len(g.players()))
 }
+

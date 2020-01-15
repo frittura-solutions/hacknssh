@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
+	"crypto/sha256"
 	"net"
 	"net/http"
 	"os"
@@ -62,6 +63,11 @@ func handler(conn net.Conn, gm *GameManager, config *ssh.ServerConfig) {
 
 		gm.HandleNewChannel(channel, sshConn.User())
 	}
+}
+
+func NewSHA256(data []byte) []byte {
+	hash := sha256.Sum256(data)
+	return hash[:]
 }
 
 func port(env, def string) string {

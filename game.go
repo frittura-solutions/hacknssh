@@ -8,15 +8,27 @@ import (
 	
 )
 
+
+
+var playerColorIndex = map[string]int{
+    "red": 0, 
+    "green": 1,
+    "yellow": 2,
+    "blue": 3,
+    "magenta": 4,
+    "cyan": 5,
+    "white": 6,
+}
+
 type ByColor []*Player
 
 func (slice ByColor) Len() int {
 	return len(slice)
 }
 
-// func (slice ByColor) Less(i, j int) bool {
-// 	return playerColors[slice[i].Color] < playerColors[slice[j].Color]
-// }
+func (slice ByColor) Less(i, j int) bool {
+	return playerColorIndex[slice[i].Color] < playerColorIndex[slice[j].Color]
+}
 
 func (slice ByColor) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
@@ -61,13 +73,11 @@ const (
 
 type GameManager struct {
 	Rooms         map[string]*Room
-	HandleChannel chan ssh.Channel
 }
 
 func NewGameManager() *GameManager {
 	return &GameManager{
 		Rooms:         map[string]*Room{},
-		HandleChannel: make(chan ssh.Channel),
 	}
 }
 
@@ -100,6 +110,7 @@ func (gm *GameManager) RoomCount() int {
 }
 
 func (gm *GameManager) HandleNewChannel(c ssh.Channel, name string) {
+	//insert here special logic that if player exists with that id_rsa.pub, control that, otherwise creates it
 	g := gm.getRoomWithAvailability()
 	if g == nil {
 		g = NewRoom(gameWidth, gameHeight)

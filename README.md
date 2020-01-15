@@ -11,7 +11,7 @@ _Controls: WASD or vim keybindings to move (**do not use your arrow keys**). Esc
 ![Demo](static/img/gameplay.gif)
 
 To set your name:
-    $ ssh [name]@sshtron.zachlatta.com
+    $ ssh [name]@insertAddressHere
 
 ## Running Your Own Copy
 
@@ -27,7 +27,7 @@ $ go get && go build
 
 # Run it! You can set PORT to customize the HTTP port it serves on and SSH_PORT
 # to customize the SSH port it serves on.
-$ go run *.go
+$ ./hacknssh
 ```
 
 ## License

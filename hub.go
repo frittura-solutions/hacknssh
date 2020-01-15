@@ -25,7 +25,7 @@ func (h *Hub) Run(r *Room) {
         select {
         case <-h.Redraw:
             for s := range h.Sessions {
-                go r.Render(s)
+                go s.Render(r)
             }
         case s := <-h.Register:
             // Hide the cursor
